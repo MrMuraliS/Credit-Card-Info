@@ -11,7 +11,7 @@ python3 -m pip install -r web/requirements.txt
 python3 web/server.py
 ```
 
-Open the URL printed by the server (default `http://127.0.0.1:8000/`). After changing the workbook, use **Refresh workbook** in the page to reload card summaries, benefits and rules, and official sources.
+Open the URL printed by the server (default `http://127.0.0.1:12000/`). After changing the workbook, use **Refresh workbook** in the page to reload card summaries, benefits and rules, and official sources.
 
 To use a different local port:
 

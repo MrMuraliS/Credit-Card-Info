@@ -774,7 +774,7 @@ def main() -> None:
         description="Serve Cardwise from the comparison workbook."
     )
     parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument("--port", type=int, default=12000)
     args = parser.parse_args()
     server = ThreadingHTTPServer((args.host, args.port), Handler)
     print(f"Cardwise is running at http://{args.host}:{args.port}/")
