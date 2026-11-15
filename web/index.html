@@ -1,0 +1,776 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f2f5f4">
+  <title>Cardwise | Credit card comparison</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #192b36;
+      --muted: #5d6f79;
+      --line: #d1dce2;
+      --paper: #eaf0f3;
+      --paper-shade: #e2e9ed;
+      --white: #ffffff;
+      --teal: #08796e;
+      --teal-dark: #103f43;
+      --mint: #d6eee7;
+      --coral: #b94d42;
+      --coral-pale: #f9e3df;
+      --gold: #98610a;
+      --gold-pale: #f6ebd0;
+      --blue: #315f8a;
+      --blue-pale: #dfebf5;
+      --slate-pale: #e7edf1;
+      --shadow: 0 14px 34px rgba(25, 50, 64, .09);
+      font-family: "DM Sans", "Avenir Next", sans-serif;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; background: linear-gradient(180deg, #f4f6f7 0%, var(--paper) 48%, var(--paper-shade) 100%); color: var(--ink); min-width: 320px; }
+    button, input, select { font: inherit; }
+    button, select { cursor: pointer; }
+    a { color: var(--teal); }
+    .shell { max-width: 1600px; margin: 0 auto; padding: 0 32px 48px; }
+
+    .topbar {
+      min-height: 64px; display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--line); gap: 20px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; color: var(--ink); text-decoration: none; }
+    .brand-mark {
+      width: 36px; height: 36px; display: grid; place-items: center; background: var(--teal-dark);
+      border-radius: 8px 8px 8px 3px; color: white; font: 500 13px "DM Mono", monospace;
+      box-shadow: 0 4px 10px rgba(16, 63, 67, .22);
+    }
+    .brand-name { font-weight: 700; font-size: 15px; letter-spacing: 0; }
+    .top-meta { display: flex; align-items: center; gap: 16px; color: var(--muted); font-size: 12px; }
+    .source-state { display: flex; align-items: center; gap: 8px; }
+    .source-state::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #19846a; box-shadow: 0 0 0 3px #d6eee5; }
+    .date-stamp { font: 11px "DM Mono", monospace; }
+
+    .intro {
+      position: relative; isolation: isolate; overflow: hidden; margin: 18px 0 20px;
+      padding: 23px 24px 20px; display: grid; grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center; gap: 17px 28px;
+      color: #fff; background: linear-gradient(112deg, #123f43 0%, #155752 60%, #237263 100%);
+      border: 1px solid #164c4e; border-radius: 9px; box-shadow: 0 12px 28px rgba(16, 63, 67, .18);
+    }
+    .intro::after {
+      content: ""; position: absolute; z-index: -1; top: 0; right: 0; width: 34%; height: 100%;
+      background: linear-gradient(110deg, transparent, rgba(246, 190, 96, .13));
+      border-left: 1px solid rgba(255,255,255,.07); pointer-events: none;
+    }
+    .intro .eyebrow { color: #8ed1c2; }
+    .intro h1 { color: #fff; }
+    .intro .intro-copy { color: #d3e4e1; }
+    .intro .panel-subtitle { color: #c1d9d4; }
+    .intro-copy-block { max-width: 620px; }
+    .eyebrow { color: var(--teal); font: 500 10px "DM Mono", monospace; text-transform: uppercase; letter-spacing: 1.2px; }
+    h1 { margin: 7px 0 7px; font: 500 clamp(28px, 3vw, 40px)/1.08 "Fraunces", Georgia, serif; letter-spacing: 0; }
+    .intro-copy { color: var(--muted); margin: 0; font-size: 13px; }
+    .intro-art { width: 270px; height: 83px; display: flex; align-items: center; justify-content: center; padding-left: 18px; }
+    .intro-art-card {
+      position: relative; flex: 0 0 105px; aspect-ratio: 1.62; overflow: hidden; margin-left: -23px;
+      border: 1px solid rgba(255,255,255,.82); border-radius: 6px; background: #e8eef1;
+      box-shadow: 0 9px 18px rgba(5, 28, 31, .3); animation: art-arrive .42s ease both;
+      animation-delay: var(--art-delay, 0ms);
+    }
+    .intro-art-card:nth-child(1) { transform: rotate(-8deg) translateY(3px); }
+    .intro-art-card:nth-child(2) { transform: rotate(-3deg) translateY(-2px); }
+    .intro-art-card:nth-child(3) { transform: rotate(4deg) translateY(2px); }
+    .intro-art-card:nth-child(4) { transform: rotate(9deg) translateY(-3px); }
+    .intro-art-card img { width: 100%; height: 100%; display: block; object-fit: cover; }
+    @keyframes art-arrive { from { opacity: 0; translate: 0 7px; } to { opacity: 1; translate: 0 0; } }
+    .top-actions { grid-column: 1 / -1; justify-self: end; display: flex; align-items: center; gap: 10px; }
+    .button {
+      min-height: 40px; padding: 0 14px; border: 1px solid var(--line); background: var(--white);
+      color: var(--ink); border-radius: 6px; font-size: 12px; font-weight: 600; transition: .18s ease;
+    }
+    .button:hover { border-color: #7898a4; background: #f7fafb; transform: translateY(-1px); }
+    .button-primary { background: #f0b858; color: #263b40; border-color: #f0b858; box-shadow: 0 3px 8px rgba(12, 38, 42, .16); }
+    .button-primary:hover { background: #f6c875; border-color: #f6c875; }
+    .button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible, [tabindex]:focus-visible {
+      outline: 3px solid #55a9a0; outline-offset: 2px;
+    }
+    .count-badge { display: inline-grid; place-items: center; min-width: 20px; height: 20px; margin-left: 5px; background: rgba(255,255,255,.17); border-radius: 50%; font: 10px "DM Mono", monospace; }
+
+    .filterbar {
+      display: grid; grid-template-columns: minmax(210px, 1.7fr) repeat(4, minmax(130px, .8fr)) auto;
+      gap: 10px; align-items: end; padding: 14px; background: rgba(255,255,255,.98); border: 1px solid #ccd9df;
+      border-top: 3px solid var(--teal); border-radius: 8px; box-shadow: 0 6px 20px rgba(30,55,69,.055);
+    }
+    .filterbar:focus-within { border-color: #9ebdc2; box-shadow: 0 0 0 3px rgba(39, 130, 125, .09), 0 8px 22px rgba(30,55,69,.06); }
+    .field { min-width: 0; display: grid; gap: 6px; }
+    .field label { color: #4a626e; font: 500 9px "DM Mono", monospace; text-transform: uppercase; letter-spacing: .8px; }
+    .control-wrap { position: relative; }
+    .control-wrap.search::before { content: ""; position: absolute; width: 11px; height: 11px; border: 1.5px solid #718584; border-radius: 50%; top: 12px; left: 12px; }
+    .control-wrap.search::after { content: ""; position: absolute; height: 6px; width: 1.5px; background: #718584; transform: rotate(-45deg); top: 23px; left: 23px; }
+    .control {
+      width: 100%; height: 38px; padding: 0 11px; background: #f7f9fa; border: 1px solid #cbd8de;
+      border-radius: 5px; color: var(--ink); font-size: 12px;
+    }
+    .control:focus { outline: none; border-color: var(--teal); background: #fff; box-shadow: 0 0 0 2px rgba(8, 121, 110, .13); }
+    .control-wrap.search .control { padding-left: 34px; }
+    select.control { appearance: none; padding-right: 28px; background-image: linear-gradient(45deg, transparent 50%, #667977 50%), linear-gradient(135deg, #667977 50%, transparent 50%); background-position: calc(100% - 13px) 15px, calc(100% - 9px) 15px; background-size: 4px 4px, 4px 4px; background-repeat: no-repeat; }
+    .reset-button { min-height: 38px; padding: 0 9px; background: #f3f8f7; border: 1px solid #d5e5e1; border-radius: 5px; color: var(--teal-dark); font-size: 11px; font-weight: 700; white-space: nowrap; transition: background .16s ease, border-color .16s ease; }
+    .reset-button:hover { background: #e4f1ed; border-color: #b6d6cc; }
+
+    .workspace { display: grid; grid-template-columns: minmax(340px, .88fr) minmax(0, 1.6fr); gap: 18px; margin-top: 18px; align-items: start; }
+    .panel { background: var(--white); border: 1px solid #ccd9df; border-radius: 8px; box-shadow: var(--shadow); overflow: hidden; }
+    .panel-head { min-height: 56px; padding: 13px 17px; border-bottom: 1px solid var(--line); background: linear-gradient(90deg, #f1f6f7, #fbfcfd 68%); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .panel-title { margin: 0; font-size: 12px; font-weight: 700; }
+    .panel-subtitle { color: var(--muted); font: 10px "DM Mono", monospace; }
+    .ranking-note { display: block; margin-top: 4px; color: #536a72; font-size: 10px; line-height: 1.4; }
+    .results-head { align-items: baseline; }
+    .result-count { color: var(--muted); font: 10px "DM Mono", monospace; white-space: nowrap; }
+    .results-panel { border-top: 3px solid #177b70; }
+    .results-panel .panel-head { background: linear-gradient(90deg, #e5f1ee, #f9fbfb 76%); }
+    .results-panel .result-count { padding: 4px 7px; border-radius: 4px; background: #dcefe9; color: #15594e; }
+    .results-list { max-height: 690px; overflow-y: auto; }
+    .card-row {
+      display: grid; grid-template-columns: 19px minmax(0, 1fr); gap: 11px; align-items: start;
+      padding: 16px 15px; border-bottom: 1px solid #e2e9ed; transition: background .16s ease;
+      animation: card-arrive .24s ease both;
+      animation-delay: calc(var(--row-index, 0) * 22ms);
+    }
+    .card-select {
+      display: grid; grid-template-columns: minmax(0, 1fr) 132px; gap: 11px; align-items: start;
+      width: 100%; min-width: 0; padding: 0; border: 0; border-radius: 3px;
+      background: transparent; color: inherit; text-align: left;
+    }
+    @keyframes card-arrive { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    .card-row:last-child { border-bottom: 0; }
+    .card-row:hover { background: #f2f8f6; }
+    .card-row.active { background: #e2f0eb; box-shadow: inset 3px 0 var(--teal); }
+    .card-row.active .row-rate strong { color: #12675d; }
+    .card-row input { margin: 3px 0 0; accent-color: var(--teal); width: 14px; height: 14px; cursor: pointer; }
+    .card-info { display: grid; grid-template-columns: 68px minmax(0,1fr); gap: 10px; align-items: start; }
+    .card-thumb { position: relative; width: 68px; height: 46px; overflow: hidden; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 4px; background: #eaf0f3; }
+    .card-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .card-thumb-label { color: #506975; font: 8px "DM Mono", monospace; text-transform: uppercase; text-align: center; }
+    .issuer-line { color: var(--muted); font: 9px "DM Mono", monospace; text-transform: uppercase; letter-spacing: .65px; }
+    .card-kicker { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+    .top-match { padding: 3px 6px; border: 1px solid #e6cc98; border-radius: 3px; background: #fbf2df; color: #79550e; font: 8px "DM Mono", monospace; text-transform: uppercase; }
+    .card-name { margin: 4px 0 7px; font-size: 14px; font-weight: 700; line-height: 1.3; }
+    .card-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+    .tag { padding: 4px 7px; border: 1px solid transparent; border-radius: 4px; background: var(--slate-pale); color: #4b606c; font: 9px "DM Mono", monospace; }
+    .tag-rewards { background: #e0ebf5; border-color: #c6d9e8; color: #2a557e; }
+    .tag-cashback { background: #d9eee6; border-color: #bddfcf; color: #145d49; }
+    .tag-movies, .tag-entertainment { background: #f8e3df; border-color: #edc9c1; color: #983d35; }
+    .tag-travel, .tag-lounges { background: #e0e9f5; border-color: #c8d7e9; color: #345780; }
+    .tag-fuel { background: #f5ebd2; border-color: #e8d6a8; color: #79550e; }
+    .tag-dining { background: #f4e5d9; border-color: #e8cfb9; color: #7d4e2f; }
+    .tag-upi { background: #e4ebf0; border-color: #cddbe3; color: #3c596a; }
+    .tag-network { background: #f1f3f5; border-color: #e0e5e9; color: #596873; }
+    .tag-unverified { background: #fae8da; border-color: #ebcfb7; color: #875027; }
+    .cashback-rank { margin-top: 8px; padding-left: 7px; border-left: 2px solid #d79a3d; color: #15574f; font-size: 10px; font-weight: 700; line-height: 1.35; }
+    .cashback-rank small { display: -webkit-box; overflow: hidden; color: var(--muted); font-size: 9px; font-weight: 400; line-height: 1.35; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+    .row-rate { width: 132px; min-width: 0; text-align: right; }
+    .row-rate strong { display: -webkit-box; overflow: hidden; font-size: 14px; line-height: 1.35; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+    .row-rate small { color: var(--muted); font: 9px "DM Mono", monospace; }
+    .empty-state { padding: 30px 18px; color: var(--muted); font-size: 12px; text-align: center; }
+
+    .detail { min-height: 420px; }
+    .detail-top { padding: 21px 22px 18px; background: linear-gradient(110deg, #e4f0ed 0%, #f4f7f8 58%, #fbf3e7 100%); border-bottom: 1px solid var(--line); }
+    .detail-topline { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+    .detail-title { margin: 5px 0 3px; font: 500 26px/1.12 "Fraunces", Georgia, serif; letter-spacing: 0; }
+    .detail-meta { color: var(--muted); font-size: 11px; }
+    .network-stamp { min-width: 58px; height: 38px; display: grid; place-items: center; padding: 0 8px; background: #f2f7f8; border: 1px solid #cadbe1; border-radius: 5px; color: #285768; font: 500 11px "DM Mono", monospace; }
+    .detail-card-art { position: relative; width: 150px; height: 94px; display: grid; place-items: center; overflow: hidden; border: 1px solid #ccd9df; border-radius: 6px; background: #e8eef1; }
+    .detail-card-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+    .detail-card-art .card-thumb-label { font-size: 10px; }
+    .detail-aside { display: grid; justify-items: end; gap: 8px; flex: 0 0 auto; }
+    .metric-strip { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 20px; border: 1px solid #ccdae0; background: rgba(255,255,255,.92); border-radius: 6px; }
+    .metric { position: relative; padding: 13px 12px 11px; border-right: 1px solid #dce5e9; min-width: 0; }
+    .metric::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: #468579; }
+    .metric:nth-child(2)::before { background: #4a7898; }
+    .metric:nth-child(3)::before { background: #c58a2d; }
+    .metric:nth-child(4)::before { background: #bd6857; }
+    .metric:last-child { border: 0; }
+    .metric-label { color: var(--muted); display: block; font: 9px "DM Mono", monospace; text-transform: uppercase; letter-spacing: .55px; }
+    .metric-value { display: -webkit-box; overflow: hidden; margin-top: 5px; font-size: 14px; font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+    .metric-sub { display: block; margin-top: 2px; color: var(--muted); font-size: 9px; line-height: 1.3; }
+
+    .detail-tabs { display: flex; gap: 0; padding: 0 18px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+    .tab {
+      position: relative; flex: 0 0 auto; padding: 13px 12px 12px; color: var(--muted); background: none;
+      border: 0; font-size: 11px; font-weight: 600;
+    }
+    .tab[aria-selected="true"] { color: var(--teal-dark); }
+    .tab[aria-selected="true"]::after { content: ""; position: absolute; height: 2px; left: 12px; right: 12px; bottom: -1px; background: var(--teal); }
+    .tab-content { padding: 20px 22px 24px; min-height: 280px; }
+    .section-heading { margin: 0 0 13px; font-size: 12px; font-weight: 700; }
+    .benefit-list { display: grid; gap: 9px; }
+    .benefit-item { display: grid; grid-template-columns: 26px minmax(0,1fr); gap: 10px; padding: 11px 0 11px 9px; border-left: 3px solid #6da78e; border-bottom: 1px solid #e6ecef; }
+    .benefit-item:last-child { border-bottom: 0; }
+    .benefit-item.exclusion { border-left-color: var(--coral); }
+    .benefit-item.caution { border-left-color: var(--gold); }
+    .benefit-index { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 6px; background: var(--mint); color: var(--teal-dark); font: 10px "DM Mono", monospace; }
+    .benefit-item.exclusion .benefit-index { background: var(--coral-pale); color: #a74331; }
+    .benefit-item.caution .benefit-index { background: var(--gold-pale); color: #805509; }
+    .benefit-name { margin: 0 0 4px; font-size: 11px; font-weight: 700; }
+    .benefit-copy { margin: 0; color: #4e6261; font-size: 11px; line-height: 1.58; }
+    .condition { display: inline-block; margin-top: 7px; color: #738280; font-size: 10px; line-height: 1.45; }
+    .status { display: inline-flex; align-items: center; gap: 5px; margin-top: 7px; font: 9px "DM Mono", monospace; }
+    .status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #368a70; }
+    .status.verified { color: #236b55; }
+    .status.partial { color: #805a0d; }
+    .status.unverified { color: #98483c; }
+    .status.partial::before { background: #c08a2b; }
+    .status.unverified::before { background: #c65a43; }
+    .note-box { margin-top: 13px; padding: 11px 12px; border-left: 3px solid var(--gold); background: #fcf7e9; color: #69572f; font-size: 10px; line-height: 1.55; }
+    .guidance-note-box { border-left-color: #39836b; background: #edf6f1; color: #315d4d; }
+    .open-items-box { border-left-color: #bd6857; background: #fbefec; color: #79483f; }
+    .benefit-sources { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+    .source-chip { display: inline-flex; max-width: 100%; padding: 3px 6px; border: 1px solid #c8d8e6; border-radius: 4px; background: #edf4fa; color: #345b7a; font: 9px "DM Mono", monospace; line-height: 1.35; text-decoration: none; overflow-wrap: anywhere; }
+    .source-chip:hover { background: #e0ecf5; border-color: #a9c1d5; text-decoration: underline; text-underline-offset: 2px; }
+    .rule-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+    .rule-table th { padding: 8px 7px; color: var(--muted); border-bottom: 1px solid var(--line); text-align: left; font: 9px "DM Mono", monospace; text-transform: uppercase; }
+    .rule-table td { vertical-align: top; padding: 9px 7px; border-bottom: 1px solid #e8eeec; line-height: 1.45; }
+    .rule-table td:first-child { font-weight: 700; }
+    .source-list { display: grid; gap: 10px; }
+    .source-item { padding: 11px 12px; border: 1px solid var(--line); border-radius: 6px; }
+    .source-item a { font-size: 11px; font-weight: 700; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    .source-item p { margin: 5px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+    .eligibility-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+    .eligibility-list li { padding: 10px 12px; border: 1px solid var(--line); border-radius: 5px; color: #405655; font-size: 11px; line-height: 1.5; }
+    .eligibility-list strong { color: var(--ink); }
+    .guidance-note { margin: 13px 0 0; color: var(--muted); font-size: 10px; line-height: 1.55; }
+
+    .compare-view { display: none; margin-top: 18px; border-top: 3px solid #b77b2a; }
+    .compare-view.open { display: block; }
+    .compare-view .panel-head { background: linear-gradient(90deg, #f6efdf, #fcfaf5 76%); }
+    .compare-wrap { overflow-x: auto; }
+    .compare-table { width: 100%; min-width: 680px; border-collapse: collapse; }
+    .compare-table th, .compare-table td { padding: 13px 15px; border-bottom: 1px solid var(--line); vertical-align: top; text-align: left; }
+    .compare-table thead th { background: #17494a; color: #fff; font: 9px "DM Mono", monospace; text-transform: uppercase; }
+    .compare-table thead th:nth-child(4n + 2) { border-top: 3px solid #287a67; background: #dcefe8; color: #15594c; }
+    .compare-table thead th:nth-child(4n + 3) { border-top: 3px solid #5d82a5; background: #e3edf6; color: #315779; }
+    .compare-table thead th:nth-child(4n + 4) { border-top: 3px solid #bd8730; background: #f7eedb; color: #76570f; }
+    .compare-table thead th:nth-child(4n + 5) { border-top: 3px solid #bd6a5e; background: #f7e9e5; color: #8c4239; }
+    .compare-table tbody th { width: 170px; background: #edf2f3; color: #425b68; font-size: 10px; font-weight: 600; }
+    .compare-table td { min-width: 240px; font-size: 11px; line-height: 1.55; }
+    .compare-table tbody td:nth-child(4n + 2) { background: #f3f8f5; }
+    .compare-table tbody td:nth-child(4n + 3) { background: #f3f6fa; }
+    .compare-table tbody td:nth-child(4n + 4) { background: #fbf8f0; }
+    .compare-table tbody td:nth-child(4n + 5) { background: #fbf4f2; }
+    .compare-name { color: var(--ink); font-size: 12px; font-weight: 700; text-transform: none; }
+    .compare-benefits { display: grid; gap: 8px; margin: 0; padding-left: 17px; }
+    .compare-benefits li { padding-left: 2px; }
+    .compare-benefits strong { color: var(--ink); }
+    .compare-close { float: right; border: 0; background: none; color: var(--muted); font-size: 10px; text-decoration: underline; text-underline-offset: 2px; }
+    .footer { margin-top: 19px; padding-top: 13px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 14px; color: var(--muted); font-size: 10px; line-height: 1.5; }
+    .footer a { text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+    @media (max-width: 1050px) {
+      .shell { padding: 0 20px 36px; }
+      .intro { grid-template-columns: minmax(0, 1fr) 230px; gap: 16px 18px; }
+      .intro-art { width: 230px; }
+      .filterbar { grid-template-columns: repeat(3, minmax(130px, 1fr)); }
+      .filterbar .field:first-child { grid-column: span 2; }
+      .workspace { grid-template-columns: minmax(290px, .78fr) minmax(0, 1.4fr); gap: 13px; }
+      .metric-strip { grid-template-columns: repeat(2, 1fr); }
+      .metric:nth-child(2) { border-right: 0; }
+      .metric:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+    }
+    @media (max-width: 760px) {
+      .shell { padding: 0 13px 28px; }
+      .topbar { min-height: 62px; }
+      .top-meta { gap: 9px; }
+      .source-state { font-size: 0; gap: 0; }
+      .source-state::before { width: 9px; height: 9px; }
+      .intro { grid-template-columns: 1fr; align-items: start; padding: 21px 17px 18px; gap: 14px; }
+      .intro-art { width: 100%; max-width: 270px; height: 72px; justify-content: flex-start; }
+      .top-actions { grid-column: 1; justify-self: stretch; width: 100%; flex-wrap: wrap; }
+      .top-actions .button { flex: 1; }
+      .filterbar { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 9px; padding: 11px; }
+      .filterbar .field:first-child { grid-column: 1 / -1; }
+      .filterbar .reset-button { justify-self: start; }
+      .workspace { grid-template-columns: 1fr; margin-top: 12px; }
+      .results-list { max-height: 360px; }
+      .detail-title { font-size: 23px; }
+      .detail-card-art { width: 112px; height: 72px; }
+      .detail-top { padding: 17px 15px 15px; }
+      .tab-content { padding: 17px 15px 20px; }
+      .detail-tabs { padding: 0 8px; }
+      .tab { padding-left: 10px; padding-right: 10px; }
+      .tab[aria-selected="true"]::after { left: 10px; right: 10px; }
+      .footer { flex-direction: column; }
+    }
+    @media (max-width: 400px) {
+      .metric { padding: 9px; }
+      .metric-value { font-size: 12px; }
+      .card-row { grid-template-columns: 17px minmax(0, 1fr); gap: 8px; padding: 14px 11px; }
+      .card-select { grid-template-columns: minmax(0, 1fr) 100px; gap: 8px; }
+      .row-rate { width: 100px; }
+      .row-rate strong { font-size: 12px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation: none !important; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Cardwise home">
+        <span class="brand-mark" aria-hidden="true">CW</span>
+        <span class="brand-name">CARDWISE</span>
+      </a>
+      <div class="top-meta">
+        <span class="source-state">Issuer sources recorded</span>
+        <span class="date-stamp">RESEARCH SNAPSHOT / 15 NOV 2026</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <div class="intro-copy-block">
+          <div class="eyebrow">Credit card comparison / India</div>
+          <h1 id="page-title">Find the card for this spend.</h1>
+          <p class="intro-copy">Compare verified benefits, qualifying rules, exclusions, and costs side by side.</p>
+        </div>
+        <div class="intro-art" id="introArt" role="group" aria-label="Issuer card artwork from this comparison set" hidden></div>
+        <div class="top-actions">
+          <span class="panel-subtitle" id="dataStatus" role="status">Loading workbook…</span>
+          <button class="button" id="refreshData" type="button" title="Reload card data from the Excel workbook">Refresh workbook</button>
+          <button class="button" id="resetTop" type="button">Reset filters</button>
+          <button class="button button-primary" id="compareToggle" type="button">Compare selected <span class="count-badge" id="compareCount">0</span></button>
+        </div>
+      </section>
+
+      <form class="filterbar" id="filters" aria-label="Filter cards">
+        <div class="field">
+          <label for="search">Search cards or benefits</label>
+          <div class="control-wrap search"><input class="control" id="search" type="search" placeholder="Try lounge, fuel, airline..." autocomplete="off"></div>
+        </div>
+        <div class="field">
+          <label for="issuer">Issuer</label>
+          <select class="control" id="issuer"><option value="">All issuers</option></select>
+        </div>
+        <div class="field">
+          <label for="network">Network</label>
+          <select class="control" id="network"><option value="">All networks</option></select>
+        </div>
+        <div class="field">
+          <label for="benefit">Benefit focus</label>
+          <select class="control" id="benefit">
+            <option value="">Any benefit</option>
+            <option value="rewards">Rewards</option>
+            <option value="cashback">Cashback</option>
+            <option value="travel">Travel</option>
+            <option value="lounge">Airport lounge</option>
+            <option value="fuel">Fuel</option>
+            <option value="movie">Movies & entertainment</option>
+            <option value="dining">Dining</option>
+            <option value="upi">UPI</option>
+            <option value="golf">Golf</option>
+            <option value="insurance">Insurance</option>
+            <option value="entertainment">Entertainment</option>
+            <option value="fee">Fee waiver / low fee</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="fee">Annual fee ceiling</label>
+          <select class="control" id="fee">
+            <option value="">Any fee</option>
+            <option value="0">No standard annual fee</option>
+            <option value="1500">Up to INR 1,500</option>
+            <option value="3000">Up to INR 3,000</option>
+            <option value="5000">Up to INR 5,000</option>
+          </select>
+        </div>
+        <button class="reset-button" id="resetInline" type="button">Clear all</button>
+      </form>
+
+      <section class="compare-view panel" id="compareView" aria-label="Selected card comparison">
+        <div class="panel-head">
+          <div><h2 class="panel-title">Side-by-side comparison</h2><span class="panel-subtitle">Only cards selected in the results are shown</span></div>
+          <button class="compare-close" id="closeCompare" type="button">Close comparison</button>
+        </div>
+        <div class="compare-wrap" id="compareTable"></div>
+      </section>
+
+      <section class="workspace" aria-label="Cards and details">
+        <section class="panel results-panel" aria-labelledby="results-title">
+          <div class="panel-head results-head">
+            <div><h2 class="panel-title" id="results-title">Cards</h2><span class="ranking-note" id="rankingNote" aria-live="polite"></span></div>
+            <span class="result-count" id="resultCount" aria-live="polite"></span>
+          </div>
+          <div class="results-list" id="resultsList"></div>
+        </section>
+
+        <section class="panel detail" id="detailPanel" aria-label="Selected card details">
+          <div id="detailContent"></div>
+        </section>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Public product information only. Terms can change; confirm current conditions with the issuer before applying or spending.</span>
+      <span>Source workbook: <a href="/download/workbook">credit-card-comparison.xlsx</a></span>
+    </footer>
+  </div>
+
+  <script>
+    let cards = [];
+
+    const state = { selectedId: null, compareIds: new Set(), activeTab: 'benefits' };
+    const $ = (selector) => document.querySelector(selector);
+    const resultsList = $('#resultsList');
+    const detailContent = $('#detailContent');
+    const compareView = $('#compareView');
+    const filters = { search: $('#search'), issuer: $('#issuer'), network: $('#network'), benefit: $('#benefit'), fee: $('#fee') };
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+    }
+
+    function parseFee(amount) { return Number.isFinite(amount) ? amount : Infinity; }
+    function rankForBenefit(card) {
+      const benefit = filters.benefit.value;
+      return benefit ? card.categoryRewardScores?.[benefit] : null;
+    }
+
+    function cashbackRankText(card) {
+      const focused = rankForBenefit(card);
+      if (filters.benefit.value) {
+        if (filters.benefit.value === 'fee') {
+          return card.annualFee === null
+            ? { heading: 'Annual fee unverified', detail: 'Shown after cards with verified annual fees' }
+            : { heading: `Annual fee ${card.feeLabel}`, detail: 'Lower standard annual fees are ranked first' };
+        }
+        if (!focused) {
+          return {
+            heading: 'No verified comparable reward rate',
+            detail: 'Unverified terms and point values are not estimated',
+          };
+        }
+        let heading;
+        if (focused.unit === 'percent') {
+          heading = filters.benefit.value === 'movie' && focused.rate === 100
+            ? '100% off eligible ticket'
+            : `${focused.rate}% stated reward rate`;
+        } else if (focused.unit === 'visits') {
+          heading = `${focused.rate} lounge visits / vouchers`;
+        } else if (focused.unit === 'rounds') {
+          heading = `${focused.rate} golf rounds / lessons`;
+        } else if (focused.unit === 'coverage') {
+          heading = `INR ${Number(focused.rate).toLocaleString('en-IN')} stated cover`;
+        } else if (focused.unit === 'redemption') {
+          heading = `INR ${Number(focused.rate).toFixed(2)} redemption value per INR 100`;
+        } else {
+          heading = `${focused.rate} reward units per INR 100`;
+        }
+        const cap = focused.cap > 0
+          ? ` · max stated value INR ${focused.cap.toLocaleString('en-IN')}`
+          : '';
+        const unitNote = focused.unit === 'points'
+          ? 'Reward-point currencies are not converted or directly comparable. '
+          : '';
+        return { heading, detail: `${unitNote}${focused.title}${cap}${focused.conditions ? ` · ${focused.conditions}` : ''}` };
+      }
+      if (card.cashbackRate === null) {
+        return {
+          heading: 'No verified cashback rate',
+          detail: 'Points are not converted to cashback',
+        };
+      }
+      return {
+        heading: `Highest stated cashback: ${card.cashbackRate}%`,
+        detail: `${card.cashbackTitle}${card.cashbackConditions ? ` · ${card.cashbackConditions}` : ''}`,
+      };
+    }
+
+    function topMatchLabel(card, firstId) {
+      if (card.id !== firstId) return '';
+      const benefit = filters.benefit.value;
+      if (benefit === 'fee') return card.annualFee === null ? '' : 'Lowest fee';
+      if (benefit) {
+        if (!card.categoryRewardScores?.[benefit]) return '';
+        const labels = {
+          movie: 'Movies', cashback: 'Cashback', travel: 'Travel', lounge: 'Lounges',
+          fuel: 'Fuel', dining: 'Dining', upi: 'UPI', golf: 'Golf',
+          insurance: 'Insurance', entertainment: 'Entertainment', rewards: 'Rewards',
+        };
+        return `Top match · ${labels[benefit] || benefit}`;
+      }
+      return card.cashbackRate === null ? '' : 'Top cashback';
+    }
+
+    function rankingNote() {
+      const benefit = filters.benefit.value;
+      if (benefit === 'fee') {
+        return 'Lowest verified standard annual fee first; unverified fees follow.';
+      }
+      if (!benefit) {
+        return 'Sorted by verified cashback rate; unverified rates follow. Points are not converted to cash.';
+      }
+      const labels = {
+        rewards: 'rewards', cashback: 'cashback', travel: 'travel', lounge: 'lounge',
+        fuel: 'fuel', movie: 'movie', dining: 'dining', upi: 'UPI', golf: 'golf',
+        insurance: 'insurance', entertainment: 'entertainment',
+      };
+      const name = labels[benefit] || benefit;
+      return `Ranked using recorded ${name} terms; rates, limits and qualifying conditions may differ. Points stay in native units.`;
+    }
+
+    function getFilteredCards() {
+      const query = filters.search.value.trim().toLowerCase();
+      const issuer = filters.issuer.value;
+      const network = filters.network.value;
+      const benefit = filters.benefit.value;
+      const fee = filters.fee.value === '' ? Infinity : Number(filters.fee.value);
+      return cards.filter((card) => {
+        const searchable = [card.name, card.issuer, card.market, card.network, card.rewardShort, card.rewardDetail, card.caveats, card.guidance,
+          ...card.categoryTags, ...card.benefits.flatMap((item) => [item.title, item.text, item.condition])].join(' ').toLowerCase();
+        if (query && !searchable.includes(query)) return false;
+        if (issuer && card.issuer !== issuer) return false;
+        if (network && card.network !== network) return false;
+        if (parseFee(card.annualFee) > fee) return false;
+        if (benefit) {
+          const text = searchable;
+          const lookup = { rewards: 'reward', cashback: 'cashback', travel: 'travel airline miles', lounge: 'lounge', fuel: 'fuel', movie: 'movie district', dining: 'dining', upi: 'upi', golf: 'golf', insurance: 'insurance', entertainment: 'entertainment', fee: 'fee waiver annual fee' }[benefit];
+          if (!lookup.split(' ').some((part) => text.includes(part))) return false;
+        }
+        return true;
+      }).sort((left, right) => {
+        if (benefit === 'fee') {
+          const leftFee = left.annualFee ?? Infinity;
+          const rightFee = right.annualFee ?? Infinity;
+          return leftFee - rightFee;
+        }
+        const leftFocused = rankForBenefit(left);
+        const rightFocused = rankForBenefit(right);
+        if (benefit) {
+          const leftGroup = leftFocused?.rankGroup ?? -1;
+          const rightGroup = rightFocused?.rankGroup ?? -1;
+          const groupDifference = rightGroup - leftGroup;
+          if (groupDifference) return groupDifference;
+          const leftRate = leftFocused?.rate ?? -1;
+          const rightRate = rightFocused?.rate ?? -1;
+          const rateDifference = rightRate - leftRate;
+          if (rateDifference) return rateDifference;
+          return (rightFocused?.cap ?? 0) - (leftFocused?.cap ?? 0);
+        }
+        const leftRate = left.cashbackRate ?? -1;
+        const rightRate = right.cashbackRate ?? -1;
+        return rightRate - leftRate;
+      });
+    }
+
+    function fillDistinctSelect(select, values) {
+      select.innerHTML = '<option value="">' + (select.id === 'issuer' ? 'All issuers' : 'All networks') + '</option>';
+      values.forEach((value) => select.add(new Option(value, value)));
+    }
+
+    function handleIntroArtError(image) {
+      const frame = image.parentElement;
+      const container = frame.parentElement;
+      frame.remove();
+      container.hidden = container.children.length === 0;
+    }
+
+    function renderIntroArt(cardList) {
+      const artwork = cardList.filter((card) => card.cardImageUrl).slice(0, 4);
+      const container = $('#introArt');
+      container.innerHTML = artwork.map((card, index) => `
+        <span class="intro-art-card" style="--art-delay:${index * 65}ms" title="${escapeHtml(card.name)}">
+          <img src="${escapeHtml(card.cardImageUrl)}" alt="${escapeHtml(card.name)} card" loading="lazy" onerror="handleIntroArtError(this)">
+        </span>`).join('');
+      container.hidden = artwork.length === 0;
+    }
+
+    function cardImagePosition(card) {
+      if (card.id === 'AXIS-AIRTEL-RUPAY') return 'left center';
+      if (card.id === 'AXIS-HORIZON-VISA') return 'right center';
+      return 'center';
+    }
+
+    function tagClass(tag) {
+      const classes = {
+        Rewards: 'tag-rewards', Cashback: 'tag-cashback', Movies: 'tag-movies',
+        Entertainment: 'tag-entertainment', Travel: 'tag-travel', Lounges: 'tag-lounges',
+        Fuel: 'tag-fuel', Dining: 'tag-dining', UPI: 'tag-upi',
+        'Terms unverified': 'tag-unverified',
+      };
+      return classes[tag] || '';
+    }
+
+    async function loadCards() {
+      const status = $('#dataStatus');
+      status.textContent = 'Reading comparison workbook…';
+      try {
+        const response = await fetch('/api/cards', { cache: 'no-store' });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Could not load comparison workbook.');
+        cards = data.cards;
+        if (!cards.length) throw new Error('No card records were found in the workbook.');
+        renderIntroArt(cards);
+        if (!cards.some((card) => card.id === state.selectedId)) state.selectedId = cards[0].id;
+        fillDistinctSelect(filters.issuer, [...new Set(cards.map((card) => card.issuer).filter(Boolean))]);
+        fillDistinctSelect(filters.network, [...new Set(cards.map((card) => card.network).filter(Boolean))]);
+        status.textContent = `${cards.length} cards / live from Excel`;
+        renderCompareCount();
+        renderResults();
+      } catch (error) {
+        cards = [];
+        status.textContent = 'Workbook unavailable';
+        resultsList.innerHTML = `<div class="empty-state">${escapeHtml(error.message)}<br>Start the local workbook server with <code>python3 web/server.py</code>.</div>`;
+        detailContent.innerHTML = '<div class="empty-state">Card details will appear when the workbook is available.</div>';
+        $('#resultCount').textContent = '0 cards';
+      }
+    }
+
+    function renderResults() {
+      const filtered = getFilteredCards();
+      $('#rankingNote').textContent = rankingNote();
+      $('#resultCount').textContent = `${filtered.length} of ${cards.length} cards`;
+      if (!filtered.some((card) => card.id === state.selectedId) && filtered.length) state.selectedId = filtered[0].id;
+      if (!filtered.length) {
+        resultsList.innerHTML = '<div class="empty-state">No cards match those filters.<br>Try a broader search or clear the filters.</div>';
+        detailContent.innerHTML = '<div class="empty-state">Select a card to view its verified details.</div>';
+        return;
+      }
+      const firstRankedId = filtered[0]?.id;
+      resultsList.innerHTML = filtered.map((card, index) => `
+        <article class="card-row ${card.id === state.selectedId ? 'active' : ''}" style="--row-index:${Math.min(index, 7)}">
+          <input type="checkbox" aria-label="Add ${escapeHtml(card.name)} to comparison" data-compare="${escapeHtml(card.id)}" ${state.compareIds.has(card.id) ? 'checked' : ''}>
+          <button class="card-select" type="button" data-select-card="${escapeHtml(card.id)}" aria-label="View ${escapeHtml(card.name)} details" aria-pressed="${card.id === state.selectedId}">
+            <span class="card-info">
+              <span class="card-thumb" aria-hidden="true"><span class="card-thumb-label">${escapeHtml(card.issuer.split(' ')[0])}</span>${card.cardImageUrl ? `<img src="${escapeHtml(card.cardImageUrl)}" alt="" style="object-position:${cardImagePosition(card)}" loading="lazy" onerror="this.remove()">` : ''}</span>
+              <span>
+                <span class="card-kicker"><span class="issuer-line">${escapeHtml(card.issuer)} / ${escapeHtml(card.market)}</span>${topMatchLabel(card, firstRankedId) ? `<span class="top-match">${escapeHtml(topMatchLabel(card, firstRankedId))}</span>` : ''}</span>
+                <span class="card-name" role="heading" aria-level="3">${escapeHtml(card.name)}</span>
+                <span class="card-tags">${card.categoryTags.slice(0, 3).map((tag) => `<span class="tag ${tagClass(tag)}">${escapeHtml(tag)}</span>`).join('')}<span class="tag tag-network">${escapeHtml(card.network)}</span></span>
+                <span class="cashback-rank">${escapeHtml(cashbackRankText(card).heading)}<small>${escapeHtml(cashbackRankText(card).detail)}</small></span>
+              </span>
+            </span>
+            <span class="row-rate"><strong>${escapeHtml(card.feeLabel)}</strong><small>annual fee</small></span>
+          </button>
+        </article>`).join('');
+      resultsList.querySelectorAll('[data-select-card]').forEach((button) => {
+        button.addEventListener('click', () => {
+          state.selectedId = button.dataset.selectCard;
+          state.activeTab = 'benefits';
+          renderResults();
+        });
+      });
+      resultsList.querySelectorAll('[data-compare]').forEach((checkbox) => checkbox.addEventListener('change', () => {
+        if (checkbox.checked) state.compareIds.add(checkbox.dataset.compare);
+        else state.compareIds.delete(checkbox.dataset.compare);
+        renderCompareCount();
+        if (compareView.classList.contains('open')) renderCompare();
+      }));
+      renderDetail(cards.find((card) => card.id === state.selectedId));
+    }
+
+    function metric(label, value, sub = '') {
+      return `<div class="metric"><span class="metric-label">${escapeHtml(label)}</span><strong class="metric-value">${escapeHtml(value)}</strong>${sub ? `<span class="metric-sub">${escapeHtml(sub)}</span>` : ''}</div>`;
+    }
+
+    function renderDetail(card) {
+      if (!card) return;
+      const tabNames = [['benefits', 'Benefits & exclusions'], ['fees', 'Fees'], ['eligibility', 'Eligibility'], ['sources', 'Sources']];
+      detailContent.innerHTML = `
+        <div class="detail-top">
+          <div class="detail-topline"><div><div class="eyebrow">${escapeHtml(card.issuer)} / ${escapeHtml(card.market)}</div><h2 class="detail-title">${escapeHtml(card.name)}</h2><div class="detail-meta">${escapeHtml(card.currency)} / ${escapeHtml(card.id)} / checked ${escapeHtml(card.checked)}</div></div><div class="detail-aside"><span class="network-stamp">${escapeHtml(card.network)}</span><div class="detail-card-art" aria-label="${escapeHtml(card.name)} card image"><span class="card-thumb-label">${escapeHtml(card.issuer.split(' ')[0])}</span>${card.cardImageUrl ? `<img src="${escapeHtml(card.cardImageUrl)}" alt="${escapeHtml(card.name)}" style="object-position:${cardImagePosition(card)}" onerror="this.remove()">` : ''}</div></div></div>
+          <div class="metric-strip">
+            ${metric('Annual fee', card.feeLabel, card.annualFee === 0 ? 'standard fee' : 'standard / offer may vary')}
+            ${metric('Purchase APR', card.apr, 'revolving balance rate')}
+            ${metric('Rewards', card.rewardShort, 'headline earning structure')}
+            ${metric('FX fee', card.forex, card.forex === 'Unverified' ? 'confirm card-specific rate' : 'foreign transaction')}
+          </div>
+        </div>
+        <div class="detail-tabs" role="tablist" aria-label="Card details">${tabNames.map(([id, label]) => `<button class="tab" type="button" role="tab" id="tab-${id}" aria-selected="${state.activeTab === id}" aria-controls="detailTabPanel" data-tab="${id}">${label}</button>`).join('')}</div>
+        <div class="tab-content" id="detailTabPanel" role="tabpanel" aria-labelledby="tab-${state.activeTab}">${renderTab(card)}</div>`;
+      detailContent.querySelectorAll('[data-tab]').forEach((button) => button.addEventListener('click', () => {
+        state.activeTab = button.dataset.tab; renderDetail(card);
+      }));
+    }
+
+    function benefitSourceLinks(card, item) {
+      const references = (item.sources || '').split(';').map((reference) => reference.trim()).filter(Boolean);
+      return references.flatMap((reference) => {
+        const source = card.sources.find((entry) => entry[3] && (reference === entry[3] || reference.startsWith(`${entry[3]} `)));
+        if (!source) return [];
+        const shortId = source[3].split('-').at(-1);
+        const section = reference.slice(source[3].length).trim();
+        const label = `Source ${shortId}${section ? ` · ${section}` : ''}`;
+        return [`<a class="source-chip" href="${escapeHtml(source[2])}" target="_blank" rel="noopener noreferrer" aria-label="Open ${escapeHtml(source[3])}: ${escapeHtml(source[0])}" title="${escapeHtml(source[0])}">${escapeHtml(label)}</a>`];
+      }).join('');
+    }
+
+    function renderTab(card) {
+      if (state.activeTab === 'benefits') {
+        return `<h3 class="section-heading">What the card offers</h3><div class="benefit-list">${card.benefits.map((item, index) => {
+          const kind = item.title.toLowerCase().includes('exclusion') ? 'exclusion' : item.status === 'unverified' || item.status === 'partial' ? 'caution' : '';
+          const icon = item.title.toLowerCase().includes('exclusion') ? '!' : String(index + 1).padStart(2, '0');
+          return `<article class="benefit-item ${kind}"><span class="benefit-index">${icon}</span><div><h4 class="benefit-name">${escapeHtml(item.title)}</h4><p class="benefit-copy">${escapeHtml(item.text)}</p>${item.condition ? `<span class="condition">${escapeHtml(item.condition)}</span><br>` : ''}<span class="status ${item.status}">${escapeHtml(item.statusText)}</span>${benefitSourceLinks(card, item) ? `<div class="benefit-sources" aria-label="Official sources">${benefitSourceLinks(card, item)}</div>` : ''}</div></article>`;
+        }).join('')}</div><div class="note-box guidance-note-box"><strong>Not a recommendation.</strong> ${escapeHtml(card.guidance)}</div><div class="note-box open-items-box"><strong>Open items.</strong> ${escapeHtml(card.caveats)}</div>`;
+      }
+      if (state.activeTab === 'fees') {
+        return `<h3 class="section-heading">Rates and charges</h3><div class="compare-wrap"><table class="rule-table"><thead><tr><th>Charge</th><th>Current issuer information</th></tr></thead><tbody>${card.fees.map(([name, value]) => `<tr><td>${escapeHtml(name)}</td><td>${escapeHtml(value)}</td></tr>`).join('')}</tbody></table></div><p class="guidance-note">Fees may have applicable taxes. Verify the fee shown in the application and current issuer Key Fact Sheet before applying.</p>`;
+      }
+      if (state.activeTab === 'eligibility') {
+        return `<h3 class="section-heading">Eligibility and practical fit</h3><ul class="eligibility-list">${card.eligibility.map((line) => `<li>${escapeHtml(line)}</li>`).join('')}</ul><p class="guidance-note"><strong>Condition-based use:</strong> ${escapeHtml(card.guidance)}</p><p class="guidance-note"><strong>Research limitations:</strong> ${escapeHtml(card.caveats)}</p>`;
+      }
+      return `<h3 class="section-heading">Official sources checked</h3><div class="source-list">${card.sources.map(([title, detail, url]) => `<article class="source-item"><a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(title)}</a><p>${escapeHtml(detail)}</p></article>`).join('')}</div><p class="guidance-note">Sources checked ${escapeHtml(card.checked)}. Benefits and fees can change; source links are retained in the comparison workbook.</p>`;
+    }
+
+    function renderCompareCount() { $('#compareCount').textContent = String(state.compareIds.size); }
+    function renderCompare() {
+      const selected = cards.filter((card) => state.compareIds.has(card.id));
+      if (!selected.length) {
+        $('#compareTable').innerHTML = '<div class="empty-state">Select at least one card using the checkboxes in the results list.</div>';
+        return;
+      }
+      const rows = [
+        ['Network', (card) => card.network], ['Annual fee', (card) => card.feeLabel], ['Joining fee', (card) => card.joiningFee],
+        ['Purchase APR', (card) => card.apr], ['Foreign transaction fee', (card) => card.forex], ['DCC markup', (card) => card.dcc],
+        ['Cash advance fee', (card) => card.cashFee], ['Rewards', (card) => card.rewardShort],
+        ['Benefits & exclusions', (card) => card.benefits],
+        ['Eligibility', (card) => card.eligibility.join('\n')], ['Unresolved terms', (card) => card.caveats],
+      ];
+      const renderCell = (label, card, getter) => {
+        if (label === 'Benefits & exclusions') {
+          return `<ul class="compare-benefits">${getter(card).map((item) => `<li><strong>${escapeHtml(item.title)}:</strong> ${escapeHtml(item.text)}${item.condition ? ` <span>${escapeHtml(item.condition)}</span>` : ''}</li>`).join('')}</ul>`;
+        }
+        return escapeHtml(getter(card)).replace(/\n/g, '<br>');
+      };
+      $('#compareTable').innerHTML = `<table class="compare-table"><thead><tr><th>Compare</th>${selected.map((card) => `<th><span class="compare-name">${escapeHtml(card.name)}</span><button class="compare-close" type="button" data-remove="${escapeHtml(card.id)}" aria-label="Remove ${escapeHtml(card.name)}">Remove</button></th>`).join('')}</tr></thead><tbody>${rows.map(([label, getter]) => `<tr><th>${escapeHtml(label)}</th>${selected.map((card) => `<td>${renderCell(label, card, getter)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+      $('#compareTable').querySelectorAll('[data-remove]').forEach((button) => button.addEventListener('click', () => {
+        state.compareIds.delete(button.dataset.remove); renderCompareCount(); renderCompare(); renderResults();
+      }));
+    }
+
+    function resetFilters() {
+      $('#filters').reset();
+      renderResults();
+    }
+
+    Object.values(filters).forEach((input) => input.addEventListener(input.tagName === 'INPUT' ? 'input' : 'change', renderResults));
+    $('#filters').addEventListener('submit', (event) => event.preventDefault());
+    $('#resetTop').addEventListener('click', resetFilters);
+    $('#resetInline').addEventListener('click', resetFilters);
+    $('#refreshData').addEventListener('click', loadCards);
+    $('#compareToggle').addEventListener('click', () => {
+      compareView.classList.toggle('open');
+      if (compareView.classList.contains('open')) {
+        renderCompare(); compareView.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+    $('#closeCompare').addEventListener('click', () => compareView.classList.remove('open'));
+    renderCompareCount();
+    loadCards();
+  </script>
+</body>
+</html>
