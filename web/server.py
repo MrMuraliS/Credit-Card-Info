@@ -574,6 +574,7 @@ def cards_from_workbook(path: Path = WORKBOOK) -> list[dict[str, Any]]:
         card_sources = sources_by_card.get(card_id, [])
         fees = []
         benefits = []
+        add_on = []
         eligibility = []
         for rule in card_rules:
             category = _text(rule.get("Category"))
@@ -625,7 +626,7 @@ def cards_from_workbook(path: Path = WORKBOOK) -> list[dict[str, Any]]:
             else:
                 status = "verified"
             status_text = status_source or "Source recorded"
-            benefits.append({
+            item = {
                 "title": title,
                 "text": amount or (
                     criteria
@@ -636,7 +637,11 @@ def cards_from_workbook(path: Path = WORKBOOK) -> list[dict[str, Any]]:
                 "status": status,
                 "statusText": status_text,
                 "sources": source_ids,
-            })
+            }
+            if low_category == "add-on":
+                add_on.append(item)
+            else:
+                benefits.append(item)
 
         annual_fee_text = _text(summary.get("Standard Annual Fee"))
         currency = _text(summary.get("Currency")) or "INR"
@@ -710,6 +715,7 @@ def cards_from_workbook(path: Path = WORKBOOK) -> list[dict[str, Any]]:
             "officialUrl": official_url,
             "cardImageUrl": card_image_url,
             "benefits": benefits,
+            "addOn": add_on,
             "sources": sources,
         })
     workbook.close()

@@ -532,7 +532,8 @@
       return cards.filter((card) => {
         const searchable = [card.name, card.issuer, card.market, card.network, card.rewardShort, card.rewardDetail, card.caveats, card.guidance,
           ...card.categoryTags, ...card.benefits.flatMap((item) => [item.title, item.text, item.condition])].join(' ').toLowerCase();
-        if (query && !searchable.includes(query)) return false;
+        const addOnText = card.addOn.flatMap((item) => [item.title, item.text, item.condition]).join(' ').toLowerCase();
+        if (query && !searchable.includes(query) && !addOnText.includes(query)) return false;
         if (issuer && card.issuer !== issuer) return false;
         if (network && card.network !== network) return false;
         if (parseFee(card.annualFee) > fee) return false;
@@ -612,13 +613,20 @@
         const response = await fetch('/api/cards', { cache: 'no-store' });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || 'Could not load comparison workbook.');
-        cards = data.cards;
+        if (!Array.isArray(data.cards)) throw new Error('The server returned an invalid card list.');
+        cards = data.cards.map((card) => ({
+          ...card,
+          addOnUnavailable: !Array.isArray(card.addOn),
+          addOn: Array.isArray(card.addOn) ? card.addOn : [],
+        }));
         if (!cards.length) throw new Error('No card records were found in the workbook.');
         renderIntroArt(cards);
         if (!cards.some((card) => card.id === state.selectedId)) state.selectedId = cards[0].id;
         fillDistinctSelect(filters.issuer, [...new Set(cards.map((card) => card.issuer).filter(Boolean))]);
         fillDistinctSelect(filters.network, [...new Set(cards.map((card) => card.network).filter(Boolean))]);
-        status.textContent = `${cards.length} cards / live from Excel`;
+        status.textContent = cards.some((card) => card.addOnUnavailable)
+          ? `${cards.length} cards / restart server for add-on details`
+          : `${cards.length} cards / live from Excel`;
         renderCompareCount();
         renderResults();
       } catch (error) {
@@ -679,7 +687,7 @@
 
     function renderDetail(card) {
       if (!card) return;
-      const tabNames = [['benefits', 'Benefits & exclusions'], ['fees', 'Fees'], ['eligibility', 'Eligibility'], ['sources', 'Sources']];
+      const tabNames = [['benefits', 'Benefits & exclusions'], ['addOn', 'Add-on cards'], ['fees', 'Fees'], ['eligibility', 'Eligibility'], ['sources', 'Sources']];
       detailContent.innerHTML = `
         <div class="detail-top">
           <div class="detail-topline"><div><div class="eyebrow">${escapeHtml(card.issuer)} / ${escapeHtml(card.market)}</div><h2 class="detail-title">${escapeHtml(card.name)}</h2><div class="detail-meta">${escapeHtml(card.currency)} / ${escapeHtml(card.id)} / checked ${escapeHtml(card.checked)}</div></div><div class="detail-aside"><span class="network-stamp">${escapeHtml(card.network)}</span><div class="detail-card-art" aria-label="${escapeHtml(card.name)} card image"><span class="card-thumb-label">${escapeHtml(card.issuer.split(' ')[0])}</span>${card.cardImageUrl ? `<img src="${escapeHtml(card.cardImageUrl)}" alt="${escapeHtml(card.name)}" style="object-position:${cardImagePosition(card)}" onerror="this.remove()">` : ''}</div></div></div>
@@ -710,6 +718,15 @@
     }
 
     function renderTab(card) {
+      if (state.activeTab === 'addOn') {
+        if (card.addOnUnavailable) return '<h3 class="section-heading">Add-on cards</h3><div class="note-box open-items-box">The running server uses an older API. Restart <code>python3 web/server.py</code> and refresh this page to see separate add-on terms. The older server may show add-on rows under Benefits &amp; exclusions.</div>';
+        if (!card.addOn.length) return '<h3 class="section-heading">Add-on cards</h3><div class="note-box open-items-box">Add-on terms have not been researched for this card.</div>';
+        return `<h3 class="section-heading">Add-on cards</h3><div class="benefit-list">${card.addOn.map((item, index) => {
+          const kind = item.status === 'verified' ? '' : 'caution';
+          const links = benefitSourceLinks(card, item);
+          return `<article class="benefit-item ${kind}"><span class="benefit-index">${String(index + 1).padStart(2, '0')}</span><div><h4 class="benefit-name">${escapeHtml(item.title)}</h4><p class="benefit-copy">${escapeHtml(item.text)}</p>${item.condition ? `<span class="condition">${escapeHtml(item.condition)}</span><br>` : ''}<span class="status ${item.status}">${escapeHtml(item.statusText)}</span>${links ? `<div class="benefit-sources" aria-label="Official sources">${links}</div>` : ''}</div></article>`;
+        }).join('')}</div>`;
+      }
       if (state.activeTab === 'benefits') {
         return `<h3 class="section-heading">What the card offers</h3><div class="benefit-list">${card.benefits.map((item, index) => {
           const kind = item.title.toLowerCase().includes('exclusion') ? 'exclusion' : item.status === 'unverified' || item.status === 'partial' ? 'caution' : '';
@@ -738,11 +755,16 @@
         ['Purchase APR', (card) => card.apr], ['Foreign transaction fee', (card) => card.forex], ['DCC markup', (card) => card.dcc],
         ['Cash advance fee', (card) => card.cashFee], ['Rewards', (card) => card.rewardShort],
         ['Benefits & exclusions', (card) => card.benefits],
+        ['Add-on cards', (card) => card.addOn],
         ['Eligibility', (card) => card.eligibility.join('\n')], ['Unresolved terms', (card) => card.caveats],
       ];
       const renderCell = (label, card, getter) => {
-        if (label === 'Benefits & exclusions') {
-          return `<ul class="compare-benefits">${getter(card).map((item) => `<li><strong>${escapeHtml(item.title)}:</strong> ${escapeHtml(item.text)}${item.condition ? ` <span>${escapeHtml(item.condition)}</span>` : ''}</li>`).join('')}</ul>`;
+        if (label === 'Benefits & exclusions' || label === 'Add-on cards') {
+          const items = getter(card);
+          if (!items.length) return label === 'Add-on cards'
+            ? (card.addOnUnavailable ? 'Restart the dashboard server and refresh to load add-on terms.' : 'Add-on terms have not been researched for this card.')
+            : 'No benefit details recorded.';
+          return `<ul class="compare-benefits">${items.map((item) => `<li><strong>${escapeHtml(item.title)}:</strong> ${escapeHtml(item.text)}${item.condition ? ` <span>${escapeHtml(item.condition)}</span>` : ''}${label === 'Add-on cards' ? ` <span class="status ${item.status}">${escapeHtml(item.statusText)}</span> ${benefitSourceLinks(card, item)}` : ''}</li>`).join('')}</ul>`;
         }
         return escapeHtml(getter(card)).replace(/\n/g, '<br>');
       };

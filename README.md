@@ -7,6 +7,7 @@ Cardwise is a local credit-card comparison dashboard for India. It compares issu
 - Search cards and filter by issuer, network, benefit focus, and annual-fee ceiling.
 - Rank results by verified terms for the selected benefit focus, or by verified cashback when no focus is selected.
 - Review benefit conditions, exclusions, unresolved terms, official sources, and card-specific fees.
+- Review add-on card issuance, reward ownership, lounge and movie eligibility, shared or independent limits, and qualifying-spend conditions in the Add-on cards detail tab and comparison.
 - Select cards for a side-by-side comparison.
 - Download the current workbook from the dashboard.
 - Research and update card records using the workspace Credit Card Info agent.
@@ -47,7 +48,7 @@ After updating the workbook, select **Refresh workbook** in the dashboard to rel
 The workbook contains three main sheets:
 
 - `Card Summary`: one row per card, stable card ID, summary facts, image provenance, and official product-page link.
-- `Benefits & Rules`: detailed rewards, fees, eligibility, conditions, caps, exclusions, verification status, and source IDs.
+- `Benefits & Rules`: detailed rewards, fees, eligibility, conditions, caps, exclusions, verification status, and source IDs; `Add-on` rows describe supplementary-card terms separately from primary-card ranking.
 - `Source Register`: official source URLs, document titles, relevant sections, limitations, and access dates.
 
 ## Local Endpoints
